@@ -74,11 +74,11 @@ def get_dataset(df_clients, df_materials, df_transaction):
 
     df_materials.drop(['hier_level_3', 'hier_level_4', 'vendor', 'is_private_label'], axis=1, inplace=True)
     merged_data = df_transaction.merge(df_materials, 'inner', 'material')
-    res = merged_data.groupby(['client_id', 'hier_level_1', 'hier_level_2']).agg({'sales_sum': 'median'})
+    res = merged_data.groupby(['client_id', 'hier_level_1', 'hier_level_2']).agg({'sales_sum': 'mean'})
     res.reset_index(inplace=True)
-    res.rename(columns={'sales_sum': 'median_expenses'}, inplace=True)
+    res.rename(columns={'sales_sum': 'mean_expenses'}, inplace=True)
     res = res.pivot_table(index=['client_id'],
-                          columns=['hier_level_2', 'hier_level_1'], values='median_expenses')
+                          columns=['hier_level_2', 'hier_level_1'], values='mean_expenses', fill_value=0)
     res.reset_index(inplace=True)
     merged_data.drop(['sales_sum', 'material', 'hier_level_2', 'hier_level_1', 'is_alco'], axis=1, inplace=True)
     merged_data.drop_duplicates(inplace=True)
