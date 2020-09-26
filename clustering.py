@@ -16,9 +16,9 @@ import numpy as np
 # 2. Choose adequate clustering based on colored projection
 # 3. Assign cluster labels to intitial table
 
-group_names = ["M-MSC", "F-MSC", "M-SPB", "F-SPB", "M-O", "F-O"]
+group_names = ["Male-Other", "Female-Other", "Female-Moscow", "Male-Moscow", "Male-SPB", "Female-SPB"]
 
-@cached(threshold=1)
+@cached
 def split_to_groups(df):
     groups = []
     columns = list(df.columns)
@@ -28,7 +28,7 @@ def split_to_groups(df):
     return groups
 
 def __signature__project(dsv, seed, perplexity):
-    return hash(dsv.tostring()), seed, perplexity
+    return hash(dsv[:5].tostring()), seed, perplexity
     
 def project(dsv, seed=1, perplexity=30):
     signature = __signature__project(dsv, seed, perplexity)
@@ -36,7 +36,7 @@ def project(dsv, seed=1, perplexity=30):
         return project.cache[signature]
     temp = TSNE(2, perplexity, random_state=seed).fit_transform(dsv)
     project.cache[signature] = (temp.T[0], temp.T[1])
-    return temp.T[0], temp.T[1]
+    return project.cache[signature]
 project.cache = {}
     
 
@@ -64,6 +64,18 @@ def complement_customers(df, a_clusterings, b_clusterings):
     return pd.concat(final)
 
 
+def get_group(group_name, df=None):
+    if df is None:
+        df = get_group.df
+    i = group_names.index(group_name)
+    groups = split_to_groups(df)
+    group = groups[i]
+    columns = list(group.columns)
+    columns.pop('client_id')
+    dsv = group[columns].to_numpy()
+    return dsv
+get_group.df = None
+
 def inspect(df, preprocessing=None, seed=1):
     if preprocessing is None:
         print("Assembling preprocessing pipeline...")
@@ -81,34 +93,72 @@ def inspect(df, preprocessing=None, seed=1):
         dsv = group[columns].to_numpy()
         dsv = preprocessing(dsv)
         print("Projecting group %s..." % group_name)
-        projection = project(dsv, seed=1)
+        projection = project(dsv, seed=seed)
         print("Plotting group %s projection..." % group_name)
         ax.scatter(*projection)
         ax.set_title(group_name)
     plt.show()
 inspect.pipeline = []
 
-def test_model(preprocessing=None, seed=1):
+def test_model(model, dsv, preprocessing=None, seed=1):
     if preprocessing is None:
         def preprocessing(dsv):
             for function in inspect.pipeline:
                 dsv = function(dsv)
             return dsv
-    
+    dsv = preprocessing(dsv)
+    model.fit(dsv)
+    projection = project(dsv, seed=seed)
+    plot_clusters(projection, model)
 test_model.pipeline = []
 
 
 
 #_________________________PREPROCESSING__PIPELINE__SEGMENTS________________________
 #__________________________________________________________________________________
+def anti_nan(dsv):
+    dsv[dsv != dsv] = 0
+    return dsv
+
+def share(dsv):
+    first_index, last_index = 0, 0 #!!!
+    subdsv = dsv.T[first_index:last_index + 1].T
+    totals = np.apply_along_axis(np.sum, 1, subdsv)
+    subdsv = np.apply_along_axis(lambda x: x / totals, 0, subdsv)
+    dsv.T[first_index:last_index + 1] = subdsv.T
+    return dsv
+
 def scale(dsv):
     return skl_scale(dsv, with_mean=False)
 
 def center(dsv):
     return skl_scale(dsv, with_std=False)
 
-def random_subsample(seed, indecies, min_remaining, max_remaining):
-    pass
+def Random_subsampling(seed, indices, min_remaining, max_remaining):
+    def subsampling(dsv):
+        np.random.seed(seed)
+        remaining = np.random.randint(min_remaining, max_remaining + 1)
+        indices = np.sort(np.random.choice(indices, size=remaining))
+        return dsv.T[indices].T
+    return subsampling
+
+def Random_magnification(seed):
+    def magnification(dsv):
+        m = 2 ** (np.random.random(dsv.shape[1]) * 3 - 1)
+        return np.apply_along_axis(lambda x: x * m, 1, dsv)
+    return magnification
 #__________________________________________________________________________________
 
+
+
+#_____________________________PREPROCESSING__PIPELINES_____________________________
+#__________________________________________________________________________________
+
+pipeline_1 = [share, scale]
+pipeline_2 = [share, center, scale]
+pipeline_3 = [share, center, scale, Random_subsampling(1, [], 10, 30)]
+pipeline_4 = [share, center, scale, Random_subsampling(1, [], 10, 30), Random_magnification(1)]
+
+
+#__________________________________________________________________________________
 
