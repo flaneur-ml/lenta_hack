@@ -54,18 +54,31 @@ def filterby_trans_period(df_transaction, days=60):
     return df_transaction.merge(data, how='inner', on='client_id')
 
 
+def get_dataset(df_clients, df_transaction):
+    data = df_transaction.groupby('client_id').agg({'sales_sum': 'sum'})
+    df_transaction = df_transaction.merge(data, 'inner', 'client_id')
+    df_transaction.rename(columns={'sales_sum_x': 'sales_sum', 'sales_sum_y': 'agg_expenses'}, inplace=True)
+    df_transaction['loyalty_period'] = df_transaction['loyalty_period'].astype('timedelta64[D]')
+    df_transaction['average_monthly_expenses'] = df_transaction['agg_expenses'] / df_transaction['loyalty_period'] * 30
+
+    data = df_transaction.groupby('client_id').agg({'chq_id': 'unique'})
+    data.reset_index(inplace=True)
+    data['chq_id'] = data['chq_id'].str.len()
+    data.rename(columns={'chq_id': 'chq_counts'}, inplace=True)
+    df_transaction = df_transaction.merge(data, 'inner', 'client_id')
+    df_transaction['average_monthly_visits'] = df_transaction['chq_counts'] / df_transaction['loyalty_period'] * 30
+    df_transaction.drop(['agg_expenses', 'chq_counts', 'sales_count',
+                         'sales_sum', 'is_promo', 'chq_position',
+                         'chq_date', 'chq_id', 'plant', 'material'], axis=1, inplace=True)
+    df_transaction.drop_duplicates(inplace=True)
+    df = df_transaction.merge(df_clients, 'inner', 'client_id')
+    return df
+
+
 if __name__ == "__main__":
     load_data('./hack_data.zip', 'Skoltech', 'hack_data')
     df_clients, df_materials, df_plants, df_transaction = data_to_panda("hack_data")
     df_clients = group_clients(df_clients)
     df_transaction = filterby_trans_period(df_transaction)
+    df = get_dataset(df_clients, df_transaction)
 
-
-'''
-// how to add new column with average monthly expenses:
-data = df_transaction.groupby('client_id').agg({'sales_sum':'sum'})
-df_transaction = df_transaction.merge(data, 'inner', 'client_id')
-df_transaction.rename(columns = {'sales_sum_x': 'sales_sum', 'sales_sum_y':'agg_expenses'}, inplace=True)
-df_transaction['loyalty_period'] = df_transaction['loyalty_period'].astype('timedelta64[D]')
-df_transaction['average_monthly_expenses'] = df_transaction['agg_expenses'] / df_transaction['loyalty_period'] * 30
-'''
