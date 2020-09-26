@@ -58,4 +58,3 @@ if __name__ == "__main__":
     df_clients, df_materials, df_plants, df_transaction = data_to_panda("hack_data")
     df_clients = group_clients(df_clients)
     df_transaction = filterby_trans_period(df_transaction)
-    
