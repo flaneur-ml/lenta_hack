@@ -1,1 +1,9 @@
+#dirs
 venv/
+.idea/
+
+#files
+*.zip
+*.xlsx
+*.csv
+*.parquet
