@@ -7,3 +7,4 @@ venv/
 *.xlsx
 *.csv
 *.parquet
+*.ipynb
