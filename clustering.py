@@ -7,7 +7,8 @@ plt.rcParams['figure.dpi'] = 100
 import pandas as pd
 import numpy as np
 
-# PRESERVEING ORDER IS IMPORTNT
+# PRESERVING ORDER IS IMPORTANT
+
 
 def split_to_groups(df):
     groups = []
@@ -17,8 +18,10 @@ def split_to_groups(df):
         groups.append(df[df["group"] == group_id][columns])
     return groups
 
-def preprocess(dsv): # dsv = dataset vectorized
+
+def preprocess(dsv):  # dsv = dataset vectorized
     return dsv
+
 
 def project(dsv, seed=1):
     temp = TSNE(2, 30, random_state=seed).fit_transform(dsv)
@@ -27,7 +30,7 @@ def project(dsv, seed=1):
 
 def plot_clusters(projection, clustering):
     try:
-        clustering = clsutering.labels_
+        clustering = clustering.labels_
     except AttributeError:
         pass
     plt.plot(*projection, c=clustering)
