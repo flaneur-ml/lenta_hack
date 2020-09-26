@@ -3,14 +3,15 @@ import sys
 import pandas as pd
 import numpy as np
 import zipfile
+import zlib
 import pyarrow
 from tqdm import tqdm
-import pyarrow.parquet as pq
 
 
 def load_data(file_path, password, data_path):
     if not os.path.isfile(file_path):
         os.system('wget https://www.dropbox.com/s/rvr9sdx539j7mb5/hack_data.zip')
+
     if not os.path.isdir(data_path):
         with zipfile.ZipFile(file_path, 'r') as f:
             print(f.printdir())
@@ -30,4 +31,4 @@ def data_to_panda(data_path):
 
 if __name__ == "__main__":
     load_data('./hack_data.zip', 'Skoltech', 'hack_data')
-    # df_clients, df_materials, df_plants, df_transaction = data_to_panda("hack_data")
+    df_clients, df_materials, df_plants, df_transaction = data_to_panda("hack_data")
