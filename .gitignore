@@ -1,3 +1,8 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
 #dirs
 venv/
 .idea/
@@ -7,3 +12,4 @@ venv/
 *.xlsx
 *.csv
 *.parquet
+*.ipynb
