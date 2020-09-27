@@ -62,20 +62,20 @@ def plot_clusters(projection, clustering): # cluster = None for simply plotting 
     
     
 def complement_customers(df, a_clusterings, b_clusterings):
-    groups = split_to_groups()
+    groups = split_to_groups(df)
     try:
         for i in range(len(a_clusterings)):
-            a_clusterings[i] = a_clustterings[i].labels_
-            b_clusterings[i] = b_clustterings[i].labels_
+            a_clusterings[i] = a_clusterings[i].labels_
+            b_clusterings[i] = b_clusterings[i].labels_
     except AttributeError:
         pass
-    for i in range(1, len(a_clusternings)):
+    for i in range(1, len(a_clusterings)):
         a_clusterings[i] += 1 + np.max(a_clusterings[i - 1])
         b_clusterings[i] += 1 + np.max(b_clusterings[i - 1])
     final = []
     for group, a_clustering, b_clustering in zip(groups, a_clusterings, b_clusterings):
-        group.insert(-1, "A-Cluster", a_clustering)
-        group.insert(-1, "B-Cluster", b_clustering)
+        group.insert(1, "A-Cluster", a_clustering)
+        group.insert(1, "B-Cluster", b_clustering)
         final.append(group)
     return pd.concat(final)
 
