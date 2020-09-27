@@ -63,16 +63,24 @@ def get_preference_matrix(data, categories, transactions, category_name, subcate
     spec_data = data.loc[data[categories] == category_name]
 
     total = sum(spec_data[transactions])
-    sum_per_subcategory_df = spec_data.groupby(subcategories)[transactions].sum().reset_index()
-    sum_per_subcategory_df["average"] = sum_per_subcategory_df[transactions]/total
+    sum_per_cluster_subcategory_df = spec_data.groupby([cluster_type, subcategories])[transactions].sum().reset_index()
+    sum_per_cluster_subcategory_df["average"] = sum_per_cluster_subcategory_df[transactions]/total*100
 
-    sns.heatmap(sum_per_subcategory_df[[subcategories, cluster_type, "average"]], annot=True)
+    sns.heatmap(sum_per_cluster_subcategory_df[[subcategories, cluster_type, "average"]], annot=True)
     plt.show()
 
 
-def get_yield_matrix(data, category, closest_subcategories, cluster_type):
+def get_yield_matrix(data, categories, transactions, category_name, subcategories, cluster_type):
     sns.set()
+    spec_data = data.loc[data[categories] == category_name]
 
+    sum_per_subcategory_df = spec_data.groupby([subcategories])[transactions].sum().reset_index()
+    sum_per_cluster_subcategory_df = spec_data.groupby([cluster_type, subcategories])[transactions].sum().reset_index()
 
-    sns.heatmap(data[[closest_subcategories, cluster_type]], annot=True)
+    for i, category in enumerate(sum_per_cluster_subcategory_df[subcategories]):
+        for j, cat in enumerate(sum_per_subcategory_df[subcategories]):
+            if cat == category:
+                sum_per_cluster_subcategory_df[transactions].values[i] /= sum_per_subcategory_df[transactions].values[j]
+
+    sns.heatmap(sum_per_cluster_subcategory_df[[subcategories, cluster_type, transactions]], annot=True)
     plt.show()
