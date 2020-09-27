@@ -52,13 +52,23 @@ def get_cluster_stats(data, cluster_type, cluster_id, features=None, plot=True):
     return mean, var, cov
 
 
+def get_spec_matrix(data, category, cluster_type, feature):
+    sns.set()
+    sns.heatmap(data[[category, cluster_type, feature]], annot=True)
+    plt.show()
+
+
 def get_preference_matrix(data, category, cluster_type):
     sns.set()
-    sns.heatmap(data[[cluster_type, category]], annot=False)
+    data
+
+    sns.heatmap(data[[cluster_type, category]], annot=True)
     plt.show()
 
 
 def get_yield_matrix(data, category, cluster_type):
     sns.set()
-    sns.heatmap(data[[cluster_type, category]], annot=False)
+
+
+    sns.heatmap(data[[cluster_type, category]], annot=True)
     plt.show()
