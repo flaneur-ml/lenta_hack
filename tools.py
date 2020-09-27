@@ -52,23 +52,27 @@ def get_cluster_stats(data, cluster_type, cluster_id, features=None, plot=True):
     return mean, var, cov
 
 
-def get_spec_matrix(data, category, cluster_type, feature):
+def get_heat_matrix(data, category, cluster_type, feature):
     sns.set()
     sns.heatmap(data[[category, cluster_type, feature]], annot=True)
     plt.show()
 
 
-def get_preference_matrix(data, category, cluster_type):
+def get_preference_matrix(data, categories, transactions, category_name, subcategories, cluster_type):
     sns.set()
-    data
+    spec_data = data.loc[data[categories] == category_name]
 
-    sns.heatmap(data[[cluster_type, category]], annot=True)
+    total = sum(spec_data[transactions])
+    sum_per_subcategory_df = spec_data.groupby(subcategories)[transactions].sum().reset_index()
+    sum_per_subcategory_df["average"] = sum_per_subcategory_df[transactions]/total
+
+    sns.heatmap(sum_per_subcategory_df[[subcategories, cluster_type, "average"]], annot=True)
     plt.show()
 
 
-def get_yield_matrix(data, category, cluster_type):
+def get_yield_matrix(data, category, closest_subcategories, cluster_type):
     sns.set()
 
 
-    sns.heatmap(data[[cluster_type, category]], annot=True)
+    sns.heatmap(data[[closest_subcategories, cluster_type]], annot=True)
     plt.show()
